@@ -233,14 +233,14 @@ double AstarPathFinder::getHeu(GridNodePtr node1, GridNodePtr node2)
 
     //Euclidean
 //    heuristic = std::sqrt(x_diff * x_diff + y_diff * y_diff + z_diff * z_diff) + 1/100; //tie breaker
-//    heuristic = std::sqrt(x_diff * x_diff + y_diff * y_diff + z_diff * z_diff);
-//    heuristic = node1->gScore + heuristic;
+    heuristic = std::sqrt(x_diff * x_diff + y_diff * y_diff + z_diff * z_diff);
+    heuristic = node1->gScore + heuristic;
 
 //    Diagonal
-    int diag = std::min(x_diff,y_diff);
-    int straight = x_diff + y_diff;
-    heuristic = 1.414 * diag +(straight - 2*diag);
-    heuristic = node1->gScore + heuristic + z_diff; //对3d情况z轴方向简单处理
+//    int diag = std::min(x_diff,y_diff);
+//    int straight = x_diff + y_diff;
+//    heuristic = 1.414 * diag +(straight - 2*diag);
+//    heuristic = node1->gScore + heuristic + z_diff; //对3d情况z轴方向简单处理
 
 #define Dijkstra 0
 #if Dijkstra
