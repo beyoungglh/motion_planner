@@ -130,7 +130,7 @@ void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
     //_use_jps = 0 -> Do not use JPS
     //_use_jps = 1 -> Use JPS
     //you just need to change the #define value of _use_jps
-#define _use_jps 1
+#define _use_jps 0
 #if _use_jps
     {
         //Call JPS to search for a path
@@ -183,20 +183,11 @@ int main(int argc, char** argv)
     _max_z_id = (int)(_z_size * _inv_resolution);
 
 
-    _astar_path_finder  = new AstarPathFinder();  //? 为什么还要再new一次
+    _astar_path_finder  = new AstarPathFinder();  //
     _astar_path_finder  -> initGridMap(_resolution, _map_lower, _map_upper, _max_x_id, _max_y_id, _max_z_id);
 
     _jps_path_finder    = new JPSPathFinder();
     _jps_path_finder    -> initGridMap(_resolution, _map_lower, _map_upper, _max_x_id, _max_y_id, _max_z_id);
-
-
-    //test
-//    Vector3d target_pt;
-//    target_pt << 10.0,0.0,0.0;
-//    _start_pt << 0.0,0.0,0.0;
-
-//    ROS_WARN("[node] receive the planning target");
-//    pathFinding(_start_pt, target_pt);
 
     ros::Rate rate(100);
     bool status = ros::ok();

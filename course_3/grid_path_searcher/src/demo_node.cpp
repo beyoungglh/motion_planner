@@ -71,7 +71,7 @@ void rcvWaypointsCallback(const nav_msgs::Path & wp)
                  wp.poses[0].pose.position.z;
 
     ROS_INFO("[node] receive the planning target");
-    pathFinding(_start_pt, target_pt); 
+    pathFinding(_start_pt, target_pt);
 }
 
 void rcvPointCloudCallBack(const sensor_msgs::PointCloud2 & pointcloud_map)
@@ -135,6 +135,9 @@ public:
         *
         *
         */
+        double x = (*state3D)[0];
+        double y = (*state3D)[1];
+        double z = (*state3D)[2];
 
         return _RRTstar_preparatory->isObsFree(x, y, z);
     }
@@ -155,13 +158,17 @@ ob::OptimizationObjectivePtr getThresholdPathLengthObj(const ob::SpaceInformatio
     obj->setCostThreshold(ob::Cost(1.51));
     return obj;
 }
-
+/**
+ * @brief pathFinding  http://elmagnifico.tech/2018/03/15/OMPL-Demo-point2dplanning/
+ * @param start_pt
+ * @param target_pt
+ */
 void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
 {
-    // Construct the robot state space in which we're planning. 
+    // Construct the robot state space in which we're planning.   构造状态空间
     ob::StateSpacePtr space(new ob::RealVectorStateSpace(3));
 
-    // Set the bounds of space to be in [0,1].
+    // Set the bounds of space to be in [0,1]. 设置状态空间的边界
     ob::RealVectorBounds bounds(3);
     bounds.setLow(0, - _x_size * 0.5);
     bounds.setLow(1, - _y_size * 0.5);
@@ -172,13 +179,13 @@ void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
     bounds.setHigh(2, _z_size);
 
     space->as<ob::RealVectorStateSpace>()->setBounds(bounds);
-    // Construct a space information instance for this state space
+    // Construct a space information instance for this state space  为这个状态空间构造空间信息
     ob::SpaceInformationPtr si(new ob::SpaceInformation(space));
-    // Set the object used to check which states in the space are valid
+    // Set the object used to check which states in the space are valid  设置状态检查函数
     si->setStateValidityChecker(ob::StateValidityCheckerPtr(new ValidityChecker(si)));
     si->setup();
 
-    // Set our robot's starting state
+    // Set our robot's starting state 起点状态
     ob::ScopedState<> start(space);
     /**
     *
@@ -187,6 +194,9 @@ void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
     *
     *
     */
+    start[0] = _start_pt(0);
+    start[1] = _start_pt(1);
+    start[2] = _start_pt(2);
 
     // Set our robot's goal state
     ob::ScopedState<> goal(space);
@@ -197,7 +207,9 @@ void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
     *
     *
     */
-
+    goal[0] = target_pt(0);  //设置终点
+    goal[1] = target_pt(1);
+    goal[2] = target_pt(2);
     // Create a problem instance
 
     /**
@@ -208,7 +220,7 @@ void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
     *
     *
     */
-
+    ob::ProblemDefinitionPtr pdef(std::make_shared<ob::ProblemDefinition>(si));
     // Set the start and goal states
     pdef->setStartAndGoalStates(start, goal);
 
@@ -221,7 +233,8 @@ void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
     *
     *
     */  
-
+    // 设置优化的目标函数
+    pdef->setOptimizationObjective(getThresholdPathLengthObj(si));
     // Construct our optimizing planner using the RRTstar algorithm.
     /**
     *
@@ -231,13 +244,14 @@ void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
     *
     *
     */ 
-
-    // Set the problem instance for our planner to solve
+    //设置好状态空间与目标点后 构造planner去规划路径
+    ob::PlannerPtr optimizingPlanner(new og::RRTstar(si));
+    // Set the problem instance for our planner to solve 将问题实例传递给规划器去执行
     optimizingPlanner->setProblemDefinition(pdef);
     optimizingPlanner->setup();
 
     // attempt to solve the planning problem within one second of
-    // planning time
+    // planning time 规划时间1s
     ob::PlannerStatus solved = optimizingPlanner->solve(1.0);
 
     if (solved)
@@ -258,6 +272,11 @@ void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
             *
             *
             */ 
+            Vector3d path_point;
+            path_point(0) = (*state)[0];
+            path_point(1) = (*state)[1];
+            path_point(2) = (*state)[2];
+            path_points.push_back(path_point);
         }
         visRRTstarPath(path_points);       
     }

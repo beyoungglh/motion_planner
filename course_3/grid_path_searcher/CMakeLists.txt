@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED)
+find_package(OMPL REQUIRED)
 # add your code here: find_package(xxx REQUIRED)
 
 
